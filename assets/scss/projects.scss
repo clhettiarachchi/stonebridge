@@ -1,0 +1,101 @@
+// Variables
+$color-status-completed: #2e7d32;
+$color-status-in-progress: #1565c0;
+$color-status-planning: #f59e0b;
+$color-status-tendering: #6b21a8;
+$color-status-on-hold: #b91c1c;
+
+// Grid
+.projects-listing {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Card
+.project-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+
+  &__image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__body {
+    padding: 1.25rem;
+  }
+
+  &__title {
+    font-size: 1.1rem;
+    margin: 0 0 0.75rem;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  &__excerpt {
+    font-size: 0.9rem;
+    color: #374151;
+  }
+
+  // Status badge
+  &__status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  &__type {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-right: 0.5rem;
+  }
+}
+
+// Status badge colours
+.project-card__status {
+  &--completed {
+    background: $color-status-completed;
+  }
+  &--in-progress {
+    background: $color-status-in-progress;
+  }
+  &--planning {
+    background: $color-status-planning;
+    color: #1f2937;
+  }
+  &--tendering {
+    background: $color-status-tendering;
+  }
+  &--on-hold {
+    background: $color-status-on-hold;
+  }
+}
