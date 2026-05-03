@@ -99,3 +99,25 @@ $color-status-on-hold: #b91c1c;
     background: $color-status-on-hold;
   }
 }
+
+// Filter bar
+.projects-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #374151;
+    background: #fff;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: #6b7280;
+    }
+  }
+}
