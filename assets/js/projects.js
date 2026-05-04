@@ -2,9 +2,8 @@
  * Projects archive — filter, fetch, URL sync, pagination
  */
 
-const grid    = document.querySelector('.projects-grid');
-const wrapper = document.querySelector('.projects-listing');
-const selType = document.querySelector('.projects-filters__type');
+const wrapper   = document.querySelector('.projects-listing');
+const selType   = document.querySelector('.projects-filters__type');
 const selStatus = document.querySelector('.projects-filters__status');
 
 let currentPage = 1;
@@ -31,8 +30,7 @@ async function fetchProjects() {
         const html = await res.text();
 
         renderResults(html);
-        syncURL();
-        renderPagination();
+            syncURL();
     } catch (err) {
         console.error('sb_filter_projects fetch error:', err);
     } finally {
@@ -43,101 +41,97 @@ async function fetchProjects() {
 // --- Render ---
 
 function renderResults(html) {
-    // Strip the injected script tag, capture total pages
     const parsed = new DOMParser().parseFromString(html, 'text/html');
-    const script = parsed.querySelector('script');
 
-    if (script) {
-        eval(script.textContent); // sets window._sbTotalPages
-        script.remove();
-    }
-
-    const empty = parsed.querySelector('.projects-empty');
-
-    if (empty) {
-        wrapper.querySelector('.projects-grid')?.remove();
-        wrapper.querySelector('.projects-pagination')?.remove();
-
-        if (!wrapper.querySelector('.projects-empty')) {
-            wrapper.insertAdjacentHTML('beforeend', empty.outerHTML);
-        }
-        return;
-    }
-
-    // Clear empty state if present
+    // Remove existing grid, pagination and empty state
+    wrapper.querySelector('.projects-grid')?.remove();
+    wrapper.querySelector('.projects-pagination')?.remove();
     wrapper.querySelector('.projects-empty')?.remove();
 
-    // Replace or create grid
-    let gridEl = wrapper.querySelector('.projects-grid');
-    if (!gridEl) {
-        gridEl = document.createElement('div');
-        gridEl.className = 'projects-grid';
-        wrapper.prepend(gridEl);
-    }
-    gridEl.innerHTML = parsed.body.innerHTML.replace(/<script[\s\S]*?<\/script>/gi, '');
+    // Inject full partial output
+    wrapper.insertAdjacentHTML('beforeend', parsed.body.innerHTML);
 }
 
-function renderPagination() {
-    wrapper.querySelector('.projects-pagination')?.remove();
+// --- Pagination click delegation ---
 
-    const total = window._sbTotalPages ?? 1;
-    if (total <= 1) return;
+wrapper.addEventListener('click', function (e) {
 
-    const nav = document.createElement('nav');
-    nav.className = 'projects-pagination';
+    const link = e.target.closest('.projects-pagination a');
+    if (!link) return;
 
-    for (let i = 1; i <= total; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        btn.className   = 'projects-pagination__btn' + (i === currentPage ? ' is-active' : '');
-        btn.addEventListener('click', () => {
-            currentPage = i;
-            fetchProjects();
-        });
-        nav.appendChild(btn);
-    }
-
-    wrapper.appendChild(nav);
-}
+    e.preventDefault();
+    const url   = new URL(link.href);
+    currentPage = parseInt(url.searchParams.get('page') ?? 1);
+    fetchProjects();
+});
 
 // --- URL sync ---
 
 function syncURL() {
     const params = new URLSearchParams();
-    if (selType.value) params.set('type', selType.value);
+    if (selType.value)   params.set('type', selType.value);
     if (selStatus.value) params.set('status', selStatus.value);
     if (currentPage > 1) params.set('page', currentPage);
 
     const query = params.toString();
+    const state = {
+        type:   selType.value,
+        status: selStatus.value,
+        page:   currentPage,
+    };
+
     history.pushState({}, '', query ? '?' + query : location.pathname);
 }
 
 function readURL() {
     const params = new URLSearchParams(location.search);
-    if (params.get('type'))   selType.value = params.get('type');
+    if (params.get('type'))   selType.value   = params.get('type');
     if (params.get('status')) selStatus.value = params.get('status');
-    if (params.get('page'))   currentPage   = parseInt(params.get('page'));
+    if (params.get('page'))   currentPage     = parseInt(params.get('page'));
 }
 
 // --- Loading state ---
 
 function setLoading(state) {
-    selType.disabled = state;
+    selType.disabled   = state;
     selStatus.disabled = state;
     wrapper.classList.toggle('is-loading', state);
 }
 
 // --- Events ---
 
-selType.addEventListener('change', () => { currentPage = 1; fetchProjects(); });
+selType.addEventListener('change',  () => { currentPage = 1; fetchProjects(); });
 selStatus.addEventListener('change', () => { currentPage = 1; fetchProjects(); });
 
-window.addEventListener('popstate', () => {
-    readURL();
+window.addEventListener('popstate', (e) => {
+
+    console.log('state: ', {
+        type: e.state.type,
+        status: e.state.status,
+        page: e.state.page,
+    })
+
+     if (e.state) {
+        selType.value   = e.state.type ?? '';
+        selStatus.value = e.state.status ?? '';
+        currentPage     = e.state.page ?? 1;
+    } else {
+        selType.value   = '';
+        selStatus.value = '';
+        currentPage     = 1;
+    }
     fetchProjects();
 });
 
 // --- Init ---
 
 readURL();
+
+// Push initial state so back button can restore it
+history.replaceState({
+    type:   selType.value,
+    status: selStatus.value,
+    page:   currentPage,
+}, '', location.href);
+
 if (location.search) fetchProjects();

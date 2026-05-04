@@ -15,7 +15,7 @@ function sb_filter_projects()
 
     $args = [
         'post_type'      => 'sb_project',
-        'posts_per_page' => 6,
+        'posts_per_page' => 3,
         'paged'          => $page,
     ];
 
@@ -46,21 +46,14 @@ function sb_filter_projects()
         $args['tax_query'] = $tax_query;
     }
 
-    $query = new WP_Query($args);
+    $query        = new WP_Query($args);
+    $current_page = $page;
 
-    if ($query->have_posts()) {
-        while ($query->have_posts()) {
-            $query->the_post();
-            get_template_part('template-parts/project-card');
-        }
-    } else {
-        echo '<p class="projects-empty">' . esc_html__('No projects found.', 'stonebridge') . '</p>';
-    }
+    get_template_part('template-parts/project-results', null, [
+        'query'        => $query,
+        'current_page' => $current_page,
+    ]);
 
-    // Pagination data for JS
-    echo '<script>window._sbTotalPages = ' . absint($query->max_num_pages) . ';</script>';
-
-    wp_reset_postdata();
     wp_die();
 }
 
